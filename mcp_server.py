@@ -61,7 +61,13 @@ mcp = FastMCP("mail_bridge", host="0.0.0.0", port=_port)
 def _decode(value: str) -> str:
     if not value:
         return ""
-    parts = decode_header(value)
+    # Some providers leave non-ASCII display names or subjects unencoded. The
+    # standard decoder first assumes an ASCII header in that case and raises,
+    # which previously made one such message break the whole inbox listing.
+    try:
+        parts = decode_header(value)
+    except UnicodeError:
+        return value
     decoded = []
     for part, charset in parts:
         if isinstance(part, bytes):
