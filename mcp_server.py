@@ -10,6 +10,7 @@ License: MIT
 
 import os
 import json
+import traceback
 import imaplib
 import smtplib
 import email
@@ -163,6 +164,7 @@ async def mail_inbox(params: InboxInput) -> str:
         conn.logout()
         return json.dumps(results, ensure_ascii=False, indent=2)
     except Exception as e:
+        print("mail_inbox failed:\n" + traceback.format_exc(), flush=True)
         return f"错误: {e}"
 
 
