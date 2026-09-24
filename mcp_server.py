@@ -71,7 +71,13 @@ def _decode(value: str) -> str:
     decoded = []
     for part, charset in parts:
         if isinstance(part, bytes):
-            decoded.append(part.decode(charset or "utf-8", errors="replace"))
+            # Malformed messages sometimes supply a charset label containing
+            # whitespace/non-ASCII bytes. Prefer the declared label, but never
+            # let a bad label prevent the rest of the inbox from loading.
+            try:
+                decoded.append(part.decode(charset or "utf-8", errors="replace"))
+            except (LookupError, UnicodeError):
+                decoded.append(part.decode("utf-8", errors="replace"))
         else:
             decoded.append(part)
     return "".join(decoded)
